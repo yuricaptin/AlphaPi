@@ -22,7 +22,10 @@ This section provides instructions on how to use the code in this repository:
   - Make sure to turn on 2-step-verification in the settings of your gmail.
   
   
-  - Scroll down to app
+  - Scroll down to App passwords
+  
+  
+  - Then create a new app password. That app password will be the key you want to use for the password in `AlphaPi.py`.
 2. In the `app_data` folder, add images of people you want to be verified into the `verify_image` folder.
 3. Make sure that the `haarcascade_frontalface_default.xml` file is in the folder.
 4. Also confirm that the new model you have from siamesemodel is converted into `.tflite` format.
