@@ -21,8 +21,8 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 detection_threshold = 0.7
 verification_threshold = 0.5
 
-sender_email = 'raspberrypibotscd23@gmail.com'
-sender_app_password = 'zqtaqdibhnwimeic'
+sender_email = ''
+sender_app_password = ''
 
 time_between_emails = 60
 time_since_last_email = time.time() - time_between_emails
@@ -86,7 +86,7 @@ while True:
         msg = EmailMessage()
         msg['Subject'] = 'Face detected'
         msg['From'] = sender_email
-        msg['To'] = 'lyork18@gmail.com'
+        msg['To'] = ''
         msg.set_content('A face was detected on the camera')
 
         with open('output.jpg', 'wb') as f:
@@ -122,7 +122,7 @@ while True:
                 msg1 = EmailMessage()
                 msg1['Subject'] = 'Face recognized'
                 msg1['From'] = sender_email
-                msg1['To'] = 'lyork18@gmail.com'
+                msg1['To'] = ''
                 msg1.set_content('This user is verified and allowed to enter')
                 print(1+1)
                 
@@ -130,7 +130,7 @@ while True:
                 msg1 = EmailMessage()
                 msg1['Subject'] = 'Face denied'
                 msg1['From'] = sender_email
-                msg1['To'] = 'lyork18@gmail.com'
+                msg1['To'] = ''
                 msg1.set_content('This user is unrecognized, their access is denied')
                 print(2+2)
                 
