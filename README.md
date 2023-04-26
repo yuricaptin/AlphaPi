@@ -1,6 +1,18 @@
 # AlphaPi
 This repository contains the files for the app that implements the model.
 
+This program has a hard time recognizing faces with a darker skin tone. Especially with the haar_cascade classifier. With my face there are false positives with an example being under here.
+People with lighter skin tones wont have a problem with their face being detected by the haar_cascadeclassifier then getting their facial image through the model. 
+
+
+![face_rec](https://user-images.githubusercontent.com/61609037/234671703-d95a4b6a-37a1-481f-ba3e-8d69b3a64120.jpg)
+
+
+The .tflite model does not work currently with this build. Reason being is the different input tensors that were created due to the way the model is structured when being converted to .tflite format. The tensorflow model can be run on the Pi the matter being that the Pi that can run it is only the Raspberry Pi Model 4B with RAM being 4 or 8GB. 
+Sadly the Raspberry Pi Model 3B doesn't have the capability of running the model. Even when the model is being run with the .tflite model without the input image being run through the verify function, the delay between actions on camera in real world is about 5 seconds. With major lag being detected throughout the program being run.
+
+The specific error that will happen is with the `ValueError: cannot set tensor: Dimension mismatch. Got 200 instead of 100 for dimension 1 of input 0`. This line is alluding to the input details tensor shape of `[1, 100, 100, 3]`. Through different techniques of concatenating the input_shape as well as the input_details, more issues started to pop up. The .tflite runtime is especially difficult for custom models. It is recommended when using .tflite to have a relatively simple custom model or use one of the pre-trained models being offered by Tensorflow.
+
 ## Siamese Neural Network and Training for the Smart Home Security with Facial Recognition using Raspberry Pi
 
 This github repo is for the implementation of the model from the [RealProjectPi-Files](https://github.com/yuricaptin/RealProjectPi-Files) directory.
