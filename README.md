@@ -8,8 +8,12 @@ People with lighter skin tones wont have a problem with their face being detecte
 ![face_rec](https://user-images.githubusercontent.com/61609037/234671703-d95a4b6a-37a1-481f-ba3e-8d69b3a64120.jpg)
 
 
-The .tflite model does not work currently with this build. Reason being is the different input tensors that were created due to the way the model is structured when being converted to .tflite format. The tensorflow model can be run on the Pi the matter being that the Pi that can run it is only the Raspberry Pi Model 4B with RAM being 4 or 8GB. 
-Sadly the Raspberry Pi Model 3B doesn't have the capability of running the model. Even when the model is being run with the .tflite model without the input image being run through the verify function, the delay between actions on camera in real world is about 5 seconds. With major lag being detected throughout the program being run.
+~~The .tflite model does not work currently with this build. Reason being is the different input tensors that were created due to the way the model is structured when being converted to .tflite format. The tensorflow model can be run on the Pi the matter being that the Pi that can run it is only the Raspberry Pi Model 4B with RAM being 4 or 8GB. 
+Sadly the Raspberry Pi Model 3B doesn't have the capability of running the model. Even when the model is being run with the .tflite model without the input image being run through the verify function, the delay between actions on camera in real world is about 5 seconds. With major lag being detected throughout the program being run.~~
+
+Correction the .tflite model now works on the raspberry pi model 3B. There was a parameter error in the `interpreter.set_tensor()` line. Previously I did `interpreter.set_tensor(input_details[0]['index'],np.expand_dims([input_img, validation_img], axis = 0).astype(np.float32)`. This outputted the error `ValueError: cannot set tensor: Dimension mismatch. Got 5 instead of 4 for dimension 1 of input 0.` Im going to conclude that the reason for this error was due to both images being recognized as tensors even if i used the list() within the line as well. This error was corrected by doing `input_img = np.expand_dims(input_img, axis = 0)` then the next line `interpreter.set_tensor(input_details[0]['index'], input_img)` with this the program worked just as intended.
+
+
 
 The specific error that will happen is with the `ValueError: cannot set tensor: Dimension mismatch. Got 200 instead of 100 for dimension 1 of input 0`. This line is alluding to the input details tensor shape of `[1, 100, 100, 3]`. Through different techniques of concatenating the input_shape as well as the input_details, more issues started to pop up. The .tflite runtime is especially difficult for custom models. It is recommended when using .tflite to have a relatively simple custom model or use one of the pre-trained models being offered by Tensorflow.
 
