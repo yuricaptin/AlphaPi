@@ -15,7 +15,7 @@ Correction the .tflite model now works on the raspberry pi model 3B. There was a
 
 
 
-The specific error that will happen is with the `ValueError: cannot set tensor: Dimension mismatch. Got 200 instead of 100 for dimension 1 of input 0`. This line is alluding to the input details tensor shape of `[1, 100, 100, 3]`. Through different techniques of concatenating the input_shape as well as the input_details, more issues started to pop up. The .tflite runtime is especially difficult for custom models. It is recommended when using .tflite to have a relatively simple custom model or use one of the pre-trained models being offered by Tensorflow.
+~~The specific error that will happen is with the `ValueError: cannot set tensor: Dimension mismatch. Got 200 instead of 100 for dimension 1 of input 0`. This line is alluding to the input details tensor shape of `[1, 100, 100, 3]`. Through different techniques of concatenating the input_shape as well as the input_details, more issues started to pop up. The .tflite runtime is especially difficult for custom models. It is recommended when using .tflite to have a relatively simple custom model or use one of the pre-trained models being offered by Tensorflow.~~
 
 ## Siamese Neural Network and Training for the Smart Home Security with Facial Recognition using Raspberry Pi
 
