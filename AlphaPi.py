@@ -4,16 +4,18 @@ import imghdr
 import numpy as np
 import smtplib
 import os
-from email.message import EmailMessage
 import configparser
 import time
 import keras
+import flask
+
 
 from keras.layers import Layer
 from keras.models import load_model
+from email.message import EmailMessage
+from flask import Flask, render_template, Response
 
-
-
+app = Flask(__name__)
 
 camera = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
@@ -50,17 +52,44 @@ def preprocess(file_path):
         # Return image
         return img
 
-model = tf.keras.models.load_model('siamesemodelv2.h5', custom_objects = {'L1Dist': L1Dist, 'BinaryCrossentropy':tf.losses.BinaryCrossentropy})
+interpreter = tf.lite.Interpreter(model_path = "siamesemodelv3.tflite")
+interpreter.allocate_tensors()
 
-def verify(model, detection_threshold, verification_threshold):
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+inputy_details = input_details
+outputy_details = output_details
+print("This is the input details",inputy_details)
+print("This is the output details",outputy_details)
+input_shape = input_details[0]['shape']
+output_shape = output_details[0]['shape']
+print("this is input shape: ", input_shape)
+print("this is output shape: ", output_shape)
+input_format = interpreter.get_output_details()[0]['dtype']
+input_index = input_details[0]["index"]
+print("This is the input index: ",input_index)
+
+#model = tf.keras.models.load_model('siamesemodelv2.tflite', custom_objects = {'L1Dist': L1Dist, 'BinaryCrossentropy':tf.losses.BinaryCrossentropy})
+
+
+
+
+def verify(interpreter, detection_threshold, verification_threshold):
     # Build results array
     results = []
     for image in os.listdir(os.path.join('app_data', 'verify_image')):
         input_img = preprocess(os.path.join('app_data', 'input_image', 'face_rec.jpg'))
         validation_img = preprocess(os.path.join('app_data', 'verify_image', image))
         
-        # Make Predictions 
-        result = model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
+        input_img = np.expand_dims(input_img, axis=0)
+        #input_img = np.expand_dims(input_img, axis=1).astype(np.float32)
+        #validation_img = np.expand_dims(validation_img, axis=1).astype(np.float32)
+        #interpreter.set_tensor(input_index,(input_img,validation_img))
+        #result = model.predict(list(np.expand_dims([input_img, validation_img], axis = 1)))
+        #results.append(result)
+        interpreter.set_tensor(input_details[0]['index'], input_img)
+        interpreter.invoke()
+        result = interpreter.get_tensor(output_details[0]['index'])
         results.append(result)
     
     # Detection Threshold: Metric above which a prediciton is considered positive 
@@ -74,12 +103,14 @@ def verify(model, detection_threshold, verification_threshold):
 
 
 
+
+def gen_frames():
 while True:
     ret, frame = camera.read()
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.05, minNeighbors=7, minSize=(35, 35))
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.19, minNeighbors=7, minSize=(50, 50))
 
     if len(faces) == 1 and time.time() - time_since_last_email > time_between_emails:
         time_since_last_email = time.time()
@@ -107,16 +138,18 @@ while True:
 
         for (x, y, w, h) in faces:
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            face_rec = frame[y:y + h, x:x + w]
+            roi_color = frame[y:y + h, x:x + w]
             with open('face_rec.jpg', 'wb') as g:
-                cv2.imwrite(os.path.join('app_data', 'input_image', 'face_rec.jpg'),face_rec)
+                cv2.imwrite(os.path.join('app_data', 'input_image', 'face_rec.jpg'),roi_color)
                 file_type1 = imghdr.what(g.name)
                 file_name1 = g.name
                 
                 with open('face_rec.jpg', 'rb') as g:
                     file_data1 = g.read()
             
-            results, verified = verify(model, detection_threshold, verification_threshold)
+                #msg1.add_attachment(file_data1, maintype='image', subtype=file_type, filename = file_name1)
+            
+            results, verified = verify(interpreter, detection_threshold, verification_threshold)
             print(verified)
             if verified == True:
                 msg1 = EmailMessage()
@@ -134,7 +167,7 @@ while True:
                 msg1.set_content('This user is unrecognized, their access is denied')
                 print(2+2)
                 
-            #msg1.add_attachment(file_data1, maintype='image', subtype = file_type1, filename = file_name1)
+                #msg1.add_attachment(file_data1, maintype='image', subtype = file_type1, filename = file_name1)
                     
             with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
                 smtp.starttls()
